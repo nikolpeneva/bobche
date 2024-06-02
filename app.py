@@ -14,7 +14,6 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
 app.config['SECRET_KEY'] = "samo levski"
 
 db = SQLAlchemy(app)
-app.app_context().push
 migrate = Migrate(app, db)
 
 class Posts(db.Model):
@@ -30,8 +29,26 @@ class Users(db.Model, UserMixin):
 	username = db.Column(db.String(20), nullable=False, unique=True)
 	name = db.Column(db.String(200), nullable=False)
 	email = db.Column(db.String(120), nullable=False, unique=True)
+	about_author = db.Column(db.Text(), nullable=True)
 	password_hash = db.Column(db.String(128))
 	posts = db.relationship('Posts', backref='poster')
+
+	@property
+	def password(self):
+		raise AttributeError('password is not a readable attribute')
+
+	@password.setter
+	def password(self, password):
+		self.password_hash = generate_password_hash(password)
+
+	def verify_password(self, password):
+		return check_password_hash(self.password_hash, password)
+
+	def __repr__(self):
+		return '<Name %r>' % self.name
+
+with app.app_context():
+	db.create_all()
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -180,3 +197,21 @@ def add_post():
 		flash("Blog Post Submitted Successfully")
 
 	return render_template("add_post.html", form=form)
+
+@app.route('/')
+def index():
+
+	return render_template("index.html")
+
+@app.route('/user/<name>')
+
+def user(name):
+	return render_template("user.html", user_name=name)
+
+@app.errorhandler(404)
+def page_not_found(e):
+	return render_template("404.html"), 404
+
+@app.errorhandler(500)
+def page_not_found(e):
+	return render_template("500.html"), 500
