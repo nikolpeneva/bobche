@@ -22,7 +22,6 @@ class Posts(db.Model):
 	title = db.Column(db.String(255))
 	content = db.Column(db.Text)
 	author = db.Column(db.String(255))
-	date_posted = db.Column(db.DateTime, default=datetime.utcnow)
 	slug = db.Column(db.String(255))
 	poster_id = db.Column(db.Integer, db.ForeignKey('users.id'))
 
@@ -111,18 +110,18 @@ def delete_post(id):
 			db.session.delete(post_to_delete)
 			db.session.commit()
 
-			flash("Blog Post Was Deleted!")
+			flash("Post Was Deleted")
 
 			posts = Posts.query.order_by(Posts.date_posted)
 			return render_template("posts.html", posts=posts)
 
 
 		except:
-			flash("Whoops! There was a problem deleting post, try again...")
+			flash("There was a problem deleting this post - try again.")
 			posts = Posts.query.order_by(Posts.date_posted)
 			return render_template("posts.html", posts=posts)
 	else:
-		flash("You Aren't Authorized To Delete That Post!")
+		flash("You Aren't Authorized To Delete That Post")
 		posts = Posts.query.order_by(Posts.date_posted)
 		return render_template("posts.html", posts=posts)
 
@@ -143,29 +142,29 @@ def edit_post(id):
 	form = PostForm()
 	if form.validate_on_submit():
 		post.title = form.title.data
-		#post.author = form.author.data
+		post.author = form.author.data
 		post.slug = form.slug.data
 		post.content = form.content.data
 		db.session.add(post)
 		db.session.commit()
-		flash("Post Has Been Updated!")
+		flash("Post Has Been Updated")
 		return redirect(url_for('post', id=post.id))
 	
 	if current_user.id == post.poster_id or current_user.id == 14:
 		form.title.data = post.title
-		#form.author.data = post.author
+		form.author.data = post.author
 		form.slug.data = post.slug
 		form.content.data = post.content
 		return render_template('edit_post.html', form=form)
 	else:
-		flash("You Aren't Authorized To Edit This Post...")
+		flash("You Aren't Authorized To Edit This Post")
 		posts = Posts.query.order_by(Posts.date_posted)
 		return render_template("posts.html", posts=posts)
 
 
 
 @app.route('/add-post', methods=['GET', 'POST'])
-#@login_required
+@login_required
 def add_post():
 	form = PostForm()
 
@@ -174,10 +173,10 @@ def add_post():
 		post = Posts(title=form.title.data, content=form.content.data, poster_id=poster, slug=form.slug.data)
 		form.title.data = ''
 		form.content.data = ''
-		#form.author.data = ''
+		form.author.data = ''
 		form.slug.data = ''
 		db.session.add(post)
 		db.session.commit()
-		flash("Blog Post Submitted Successfully!")
+		flash("Blog Post Submitted Successfully")
 
 	return render_template("add_post.html", form=form)
