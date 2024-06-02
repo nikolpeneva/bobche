@@ -20,3 +20,10 @@ class UserForm(FlaskForm):
 	password_hash2 = PasswordField('Confirm Password', validators=[DataRequired()])
 	profile_pic = FileField("Profile Pic")
 	submit = SubmitField("Submit")
+
+class PostForm(FlaskForm):
+	title = StringField("Title", validators=[DataRequired()])
+	content = CKEditorField('Content', validators=[DataRequired()])
+	author = StringField("Author")
+	slug = StringField("Slug", validators=[DataRequired()])
+	submit = SubmitField("Submit")
