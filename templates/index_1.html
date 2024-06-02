@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+	<h1>Welcome to bobche!</h1>
+
+	<a href="{{ url_for('login')}}" class="btn btn-danger">Login</a>
+	
+	<a href="{{ url_for('add_user')}}" class="btn btn-danger">Register</a>
+
+{% endblock %}
