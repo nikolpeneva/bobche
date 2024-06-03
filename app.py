@@ -50,6 +50,8 @@ class Users(db.Model, UserMixin):
 with app.app_context():
 	db.create_all()
 
+
+
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
@@ -58,6 +60,25 @@ login_manager.login_view = 'login'
 def load_user(user_id):
 	return Users.query.get(int(user_id))
 
+@app.context_processor
+def base():
+	form = SearchForm()
+	return dict(form=form)
+
+@app.route('/search', methods=["POST"])
+def search():
+	form = SearchForm()
+	posts = Posts.query
+	if form.validate_on_submit():
+		post.searched = form.searched.data
+		posts = posts.filter(Posts.content.like('%' + post.searched + '%'))
+		posts = posts.order_by(Posts.title).all()
+
+		return render_template("search.html",
+		 form=form,
+		 searched = post.searched,
+		 posts = posts)
+	
 @app.route('/admin')
 @login_required
 def admin():
@@ -68,6 +89,7 @@ def admin():
 		flash("Sorry you must be the Admin to access this page")
 		return redirect(url_for('dashboard'))
 	
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
 	form = LoginForm()
@@ -116,6 +138,25 @@ def register():
 		form=form,
 		name=name,
 		our_users=our_users)
+
+@app.route('/dashboard', methods=['GET', 'POST'])
+@login_required
+def dashboard():
+	form = UserForm()
+	id = current_user.id
+	name_to_update = Users.query.get_or_404(id)
+	if request.method == "POST":
+		name_to_update.name = request.form['name']
+		name_to_update.email = request.form['email']
+		name_to_update.username = request.form['username']
+		name_to_update.about_author = request.form['about_author']
+		
+		return render_template("dashboard.html", 
+				form=form,
+				name_to_update = name_to_update,
+				id = id)
+
+	return render_template('dashboard.html')
 
 @app.route('/posts/delete/<int:id>')
 @login_required
@@ -216,21 +257,5 @@ def page_not_found(e):
 def page_not_found(e):
 	return render_template("500.html"), 500
 
-@app.context_processor
-def base():
-	form = SearchForm()
-	return dict(form=form)
-
-@app.route('/search', methods=["POST"])
-def search():
-	form = SearchForm()
-	posts = Posts.query
-	if form.validate_on_submit():
-		post.searched = form.searched.data
-		posts = posts.filter(Posts.content.like('%' + post.searched + '%'))
-		posts = posts.order_by(Posts.title).all()
-
-		return render_template("search.html",
-		 form=form,
-		 searched = post.searched,
-		 posts = posts)
+if __name__ == "__main__":
+	app.run(debug=True) 
