@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_ckeditor import CKEditor
 from flask_migrate import Migrate
 from datetime import datetime
-from webforms import LoginForm, UserForm, PostForm
+from webforms import LoginForm, UserForm, PostForm, SearchForm
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash 
 
@@ -215,3 +215,22 @@ def page_not_found(e):
 @app.errorhandler(500)
 def page_not_found(e):
 	return render_template("500.html"), 500
+
+@app.context_processor
+def base():
+	form = SearchForm()
+	return dict(form=form)
+
+@app.route('/search', methods=["POST"])
+def search():
+	form = SearchForm()
+	posts = Posts.query
+	if form.validate_on_submit():
+		post.searched = form.searched.data
+		posts = posts.filter(Posts.content.like('%' + post.searched + '%'))
+		posts = posts.order_by(Posts.title).all()
+
+		return render_template("search.html",
+		 form=form,
+		 searched = post.searched,
+		 posts = posts)
