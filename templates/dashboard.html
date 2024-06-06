@@ -67,18 +67,6 @@
 
     
 	</div>
-	<div class="col-4">
-		{% if current_user.profile_pic %}
-
-		<img src="{{ url_for('static', filename='images/' + current_user.profile_pic)}}" width="200" align="right">
-		
-		{% else %}
-
-		<img src="{{ url_for('static', filename='images/default_profile_pic.png')}}" width="200" align="right">
-
-		{% endif %}
-	
-	</div>
 	</div>
 	</div>
 
@@ -90,48 +78,7 @@
 	
 <br/>
 
-<div class="card">
-  <div class="card-header">
-    Update Profile
-  </div>
-  <div class="card-body">
 
-  	<form action="/dashboard" method="POST" enctype="multipart/form-data">
-		{{ form.hidden_tag() }}
-
-		{{ form.name.label(class="form-label") }}
-
-		{{ form.name(class="form-control", value=name_to_update.name) }}
-		<br/>
-
-		{{ form.username.label(class="form-label") }}
-
-		{{ form.username(class="form-control", value=name_to_update.username) }}
-		<br/>
-
-		{{ form.email.label(class="form-label") }}
-
-		{{ form.email(class="form-control", value=name_to_update.email) }}
-		<br/>
-		
-		{{ form.favorite_color.label(class="form-label") }}
-
-		{{ form.favorite_color(class="form-control", value=name_to_update.favorite_color) }}
-		<br/>
-
-		{{ form.about_author.label(class="form-label") }}
-
-		<textarea name="about_author" class="form-control">{{ name_to_update.about_author }}</textarea>
-		<br/>
-
-		{{ form.profile_pic.label(class="form-label") }}
-
-		{{ form.profile_pic(class="form-control", value=name_to_update.profile_pic) }}
-		
-
-		<br/>
-		
-		{{ form.submit(class="btn btn-secondary btn-sm") }}
 			
 
 		

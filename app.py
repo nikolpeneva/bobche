@@ -6,7 +6,7 @@ from datetime import datetime
 from webforms import LoginForm, UserForm, PostForm, SearchForm
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash 
-
+from sqlalchemy.sql import func
 
 app = Flask(__name__)
 ckeditor = CKEditor(app)
@@ -22,6 +22,7 @@ class Posts(db.Model):
 	content = db.Column(db.Text)
 	author = db.Column(db.String(255))
 	slug = db.Column(db.String(255))
+	date_posted = db.Column(db.DateTime(timezone=True), default=func.now())
 	poster_id = db.Column(db.Integer, db.ForeignKey('users.id'))
 
 class Users(db.Model, UserMixin):
@@ -101,8 +102,6 @@ def login():
 				flash("Wrong Password - Try Again")
 		else:
 			flash("User Not Found - Try Again")
-
-
 	return render_template('login.html', form=form)
 
 @app.route('/logout', methods=['GET', 'POST'])
@@ -177,6 +176,60 @@ def delete_post(id):
 		flash("You Aren't Authorized To Delete That Post")
 		posts = Posts.query.order_by(Posts.date_posted)
 		return render_template("posts.html", posts=posts)
+	
+@app.route('/update/<int:id>', methods=['GET', 'POST'])
+@login_required
+def update(id):
+	form = UserForm()
+	name_to_update = Users.query.get_or_404(id)
+	if request.method == "POST":
+		name_to_update.name = request.form['name']
+		name_to_update.email = request.form['email']
+		name_to_update.username = request.form['username']
+		try:
+			db.session.commit()
+			flash("User Updated Successfully!")
+			return render_template("update.html", 
+				form=form,
+				name_to_update = name_to_update, id=id)
+		except:
+			flash("Error. Looks like there was a problem - try again.")
+			return render_template("update.html", 
+				form=form,
+				name_to_update = name_to_update,
+				id=id)
+	else:
+		return render_template("update.html", 
+				form=form,
+				name_to_update = name_to_update,
+				id = id)
+	
+@app.route('/delete/<int:id>')
+@login_required
+def delete(id):
+	if id == current_user.id:
+		user_to_delete = Users.query.get_or_404(id)
+		name = None
+		form = UserForm()
+
+		try:
+			db.session.delete(user_to_delete)
+			db.session.commit()
+			flash("User Deleted Successfully!!")
+
+			our_users = Users.query.order_by(Users.date_added)
+			return render_template("add_user.html", 
+			form=form,
+			name=name,
+			our_users=our_users)
+
+		except:
+			flash("Whoops! There was a problem deleting user, try again...")
+			return render_template("add_user.html", 
+			form=form, name=name,our_users=our_users)
+	else:
+		flash("Sorry, you can't delete that user! ")
+		return redirect(url_for('dashboard'))
 
 @app.route('/posts')
 def posts():
