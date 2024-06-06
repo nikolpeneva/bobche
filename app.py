@@ -173,7 +173,7 @@ def delete_post(id):
 			posts = Posts.query.order_by(Posts.date_posted)
 			return render_template("posts.html", posts=posts)
 	else:
-		flash("You Aren't Authorized To Delete That Post")
+		flash("You Aren't Authorized To Delete This Post")
 		posts = Posts.query.order_by(Posts.date_posted)
 		return render_template("posts.html", posts=posts)
 	
@@ -224,7 +224,7 @@ def delete(id):
 			our_users=our_users)
 
 		except:
-			flash("Whoops! There was a problem deleting user, try again...")
+			flash("There was a problem deleting user - try again.")
 			return render_template("add_user.html", 
 			form=form, name=name,our_users=our_users)
 	else:
