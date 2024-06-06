@@ -29,7 +29,6 @@ class Users(db.Model, UserMixin):
 	username = db.Column(db.String(20), nullable=False, unique=True)
 	name = db.Column(db.String(200), nullable=False)
 	email = db.Column(db.String(120), nullable=False, unique=True)
-	about_author = db.Column(db.Text(), nullable=True)
 	password_hash = db.Column(db.String(128))
 	posts = db.relationship('Posts', backref='poster')
 
@@ -49,8 +48,6 @@ class Users(db.Model, UserMixin):
 
 with app.app_context():
 	db.create_all()
-
-
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -122,7 +119,7 @@ def register():
 	if form.validate_on_submit():
 		user = Users.query.filter_by(email=form.email.data).first()
 		if user is None:
-			hashed_pw = generate_password_hash(form.password_hash.data, "sha256")
+			hashed_pw = generate_password_hash(form.password_hash.data)
 			user = Users(username=form.username.data, name=form.name.data, email=form.email.data, password_hash=hashed_pw)
 			db.session.add(user)
 			db.session.commit()
@@ -133,11 +130,9 @@ def register():
 		form.password_hash.data = ''
 
 		flash("User Added Successfully")
-	our_users = Users.query.order_by(Users.date_added)
 	return render_template("add_user.html", 
 		form=form,
-		name=name,
-		our_users=our_users)
+		name=name)
 
 @app.route('/dashboard', methods=['GET', 'POST'])
 @login_required

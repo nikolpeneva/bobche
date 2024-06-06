@@ -1,6 +1,6 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container-fluid">
-      <a class="navbar-brand" href="{{ url_for('index') }}">Flasker</a>
+      <a class="navbar-brand" href="{{ url_for('index') }}">Bobche</a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
@@ -12,18 +12,12 @@
               <a class="nav-link" href="{{ url_for('dashboard')}}">Dashboard</a>
             </li>
   
-            {% if current_user.id == 1 %}
-            <li class="nav-item">
-              <a class="nav-link" href="{{ url_for('admin')}}">Admin</a>
-            </li>
-            {% endif %}
-  
             <li class="nav-item">
               <a class="nav-link" href="{{ url_for('logout')}}">Logout</a>
             </li>
           {% else %}
             <li class="nav-item">
-              <a class="nav-link" href="{{ url_for('add_user')}}">Register</a>
+              <a class="nav-link" href="{{ url_for('register')}}">Register</a>
             </li>
             <li class="nav-item">
               <a class="nav-link" href="{{ url_for('login')}}">Login</a>
