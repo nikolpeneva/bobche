@@ -4,6 +4,12 @@ h1{
 }
 
 .btn_btn-danger{
- position: fixed;
  text-align: center;
- }
+ color: white;
+ background-color: transparent;
+ border: 1px solid white;
+ padding: 10px 20px;
+ margin: 0 10px;
+ cursor: pointer;
+}
+ 
