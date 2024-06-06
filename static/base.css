@@ -1,0 +1,9 @@
+h1{
+    text-align: center;
+    margin-top: 50px;
+}
+
+.footer a{
+ position: fixed;
+ bottom: 120px;
+ }
