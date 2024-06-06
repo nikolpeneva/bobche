@@ -5,12 +5,9 @@ h1{
 
 .btn_btn-danger{
  text-align: center;
- color: white;
- background-color: red;
- border: 1px solid white;
- padding: 10px 20px;
- margin: 0 10px;
- cursor: pointer;
- margin-top:100px;
+ position: static;
+    left: 50px;
+    width: 50vw;
+    height: 50vh;
 }
  
