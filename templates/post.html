@@ -29,6 +29,28 @@
 
 {% endif %}
 
+<h2>Comments</h2>
+{% for comment in comments %}
+    <p>{{ comment.author }} on {{ comment.date_posted.strftime('%Y-%m-%d') }}</p>
+    <p>{{ comment.content }}</p>
+    <hr>
+{% endfor %}
+
+{% if current_user.is_authenticated %}
+    <form method="POST" action="">
+        {{ form.hidden_tag() }}
+        <div class="form-group">
+            {{ form.content.label }}<br>
+            {{ form.content(rows=5, class_="form-control") }}<br>
+        </div>
+        <div class="form-group">
+            {{ form.submit(class_="btn btn-primary") }}
+        </div>
+    </form>
+{% else %}
+    <p>You must be logged in to comment. <a href="{{ url_for('login') }}">Login</a></p>
+{% endif %}
+
 <a href="{{ url_for('posts')}}" class="btn btn-outline-secondary btn-sm">Back To Blog</a>
 
 

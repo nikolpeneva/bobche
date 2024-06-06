@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_ckeditor import CKEditor
 from flask_migrate import Migrate
 from datetime import datetime
-from webforms import LoginForm, UserForm, PostForm, SearchForm
+from webforms import LoginForm, UserForm, PostForm, SearchForm, CommentForm
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash 
 from sqlalchemy.sql import func
@@ -16,36 +16,46 @@ app.config['SECRET_KEY'] = "samo levski"
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
-class Posts(db.Model):
-	id = db.Column(db.Integer, primary_key=True)
-	title = db.Column(db.String(255))
-	content = db.Column(db.Text)
-	author = db.Column(db.String(255))
-	slug = db.Column(db.String(255))
-	date_posted = db.Column(db.DateTime(timezone=True), default=func.now())
-	poster_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-
 class Users(db.Model, UserMixin):
-	id = db.Column(db.Integer, primary_key=True)
-	username = db.Column(db.String(20), nullable=False, unique=True)
-	name = db.Column(db.String(200), nullable=False)
-	email = db.Column(db.String(120), nullable=False, unique=True)
-	password_hash = db.Column(db.String(128))
-	posts = db.relationship('Posts', backref='poster')
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(20), nullable=False, unique=True)
+    name = db.Column(db.String(200), nullable=False)
+    email = db.Column(db.String(120), nullable=False, unique=True)
+    password_hash = db.Column(db.String(128))
+    posts = db.relationship('Posts', backref='poster')
+    comments = db.relationship("Comment", backref='poster')
 
-	@property
-	def password(self):
-		raise AttributeError('password is not a readable attribute')
+    @property
+    def password(self):
+        raise AttributeError('password is not a readable attribute')
 
-	@password.setter
-	def password(self, password):
-		self.password_hash = generate_password_hash(password)
+    @password.setter
+    def password(self, password):
+        self.password_hash = generate_password_hash(password)
 
-	def verify_password(self, password):
-		return check_password_hash(self.password_hash, password)
+    def verify_password(self, password):
+        return check_password_hash(self.password_hash, password)
 
-	def __repr__(self):
-		return '<Name %r>' % self.name
+    def __repr__(self):
+        return '<Name %r>' % self.name
+
+class Posts(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(255))
+    content = db.Column(db.Text)
+    author = db.Column(db.String(255))
+    slug = db.Column(db.String(255))
+    date_posted = db.Column(db.DateTime(timezone=True), default=func.now())
+    poster_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    comments = db.relationship('Comment', backref='post')
+
+class Comment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    content = db.Column(db.String(200), nullable=False)
+    author = db.Column(db.String(255))
+    date_posted = db.Column(db.DateTime(timezone=True), default=func.now())
+    poster_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    post_id = db.Column(db.Integer, db.ForeignKey('posts.id'), nullable=False)
 
 with app.app_context():
 	db.create_all()
@@ -236,10 +246,20 @@ def posts():
 	posts = Posts.query.order_by(Posts.date_posted)
 	return render_template("posts.html", posts=posts)
 
-@app.route('/posts/<int:id>')
+@app.route('/posts/<int:id>', methods=['GET', 'POST'])
 def post(id):
-	post = Posts.query.get_or_404(id)
-	return render_template('post.html', post=post)
+    post = Posts.query.get_or_404(id)
+    comments = Comment.query.filter_by(post_id=id).order_by(Comment.date_posted.desc()).all()
+    form = CommentForm()
+
+    if form.validate_on_submit():
+        comment = Comment(content=form.content.data, author=current_user.username, post_id=id, poster_id=current_user.id)
+        db.session.add(comment)
+        db.session.commit()
+        flash('Your comment has been added!', 'success')
+        return redirect(url_for('post', id=post.id))
+
+    return render_template('post.html', post=post, comments=comments, form=form)
 
 @app.route('/posts/edit/<int:id>', methods=['GET', 'POST'])
 @login_required
