@@ -49,7 +49,7 @@ class Posts(db.Model):
 
 class Comment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    content = db.Column(db.String(200), nullable=False)
+    content = db.Column(db.Text)
     author = db.Column(db.String(255))
     date_posted = db.Column(db.DateTime(timezone=True), default=func.now())
     poster_id = db.Column(db.Integer, db.ForeignKey('users.id'))
@@ -79,21 +79,17 @@ def search():
 		post.searched = form.searched.data
 		posts = posts.filter(Posts.content.like('%' + post.searched + '%'))
 		posts = posts.order_by(Posts.title).all()
-
-		return render_template("search.html",
-		 form=form,
-		 searched = post.searched,
-		 posts = posts)
+		return render_template("search.html", form=form, searched = post.searched, posts = posts)
 	
-@app.route('/admin')
-@login_required
-def admin():
-	id = current_user.id
-	if id == 1:
-		return render_template("admin.html")
-	else:
-		flash("Sorry you must be the Admin to access this page")
-		return redirect(url_for('dashboard'))
+#@app.route('/admin')
+#@login_required
+#def admin():
+	#id = current_user.id
+	#if id == 1:
+		#return render_template("admin.html")
+	#else:
+		#flash("Sorry you must be the Admin to access this page")
+		#return redirect(url_for('dashboard'))
 	
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -144,20 +140,6 @@ def register():
 @app.route('/dashboard', methods=['GET', 'POST'])
 @login_required
 def dashboard():
-	form = UserForm()
-	id = current_user.id
-	name_to_update = Users.query.get_or_404(id)
-	if request.method == "POST":
-		name_to_update.name = request.form['name']
-		name_to_update.email = request.form['email']
-		name_to_update.username = request.form['username']
-		name_to_update.about_author = request.form['about_author']
-		
-		return render_template("dashboard.html", 
-				form=form,
-				name_to_update = name_to_update,
-				id = id)
-
 	return render_template('dashboard.html')
 
 @app.route('/posts/delete/<int:id>')
@@ -169,13 +151,9 @@ def delete_post(id):
 		try:
 			db.session.delete(post_to_delete)
 			db.session.commit()
-
 			flash("Post Was Deleted")
-
 			posts = Posts.query.order_by(Posts.date_posted)
 			return render_template("posts.html", posts=posts)
-
-
 		except:
 			flash("There was a problem deleting this post - try again.")
 			posts = Posts.query.order_by(Posts.date_posted)
@@ -197,20 +175,12 @@ def update(id):
 		try:
 			db.session.commit()
 			flash("User Updated Successfully!")
-			return render_template("update.html", 
-				form=form,
-				name_to_update = name_to_update, id=id)
+			return render_template("update.html", form=form, name_to_update = name_to_update, id=id)
 		except:
 			flash("Error. Looks like there was a problem - try again.")
-			return render_template("update.html", 
-				form=form,
-				name_to_update = name_to_update,
-				id=id)
+			return render_template("update.html", form=form, name_to_update = name_to_update, id=id)
 	else:
-		return render_template("update.html", 
-				form=form,
-				name_to_update = name_to_update,
-				id = id)
+		return render_template("update.html", form=form, name_to_update = name_to_update, id = id)
 	
 @app.route('/delete/<int:id>')
 @login_required
@@ -226,15 +196,11 @@ def delete(id):
 			flash("User Deleted Successfully!!")
 
 			our_users = Users.query.order_by(Users.date_added)
-			return render_template("add_user.html", 
-			form=form,
-			name=name,
-			our_users=our_users)
+			return render_template("add_user.html", form=form, name=name, our_users=our_users)
 
 		except:
 			flash("There was a problem deleting user - try again.")
-			return render_template("add_user.html", 
-			form=form, name=name,our_users=our_users)
+			return render_template("add_user.html", form=form, name=name,our_users=our_users)
 	else:
 		flash("Sorry, you can't delete that user! ")
 		return redirect(url_for('dashboard'))
@@ -249,14 +215,12 @@ def post(id):
     post = Posts.query.get_or_404(id)
     comments = Comment.query.filter_by(post_id=id).order_by(Comment.date_posted.desc()).all()
     form = CommentForm()
-
     if form.validate_on_submit():
         comment = Comment(content=form.content.data, author=current_user.username, post_id=id, poster_id=current_user.id)
         db.session.add(comment)
         db.session.commit()
-        flash('Your comment has been added!', 'success')
+        flash('Your comment has been added', 'success')
         return redirect(url_for('post', id=post.id))
-
     return render_template('post.html', post=post, comments=comments, form=form)
 
 @app.route('/posts/edit/<int:id>', methods=['GET', 'POST'])
@@ -273,7 +237,6 @@ def edit_post(id):
 		db.session.commit()
 		flash("Post Has Been Updated")
 		return redirect(url_for('post', id=post.id))
-	
 	if current_user.id == post.poster_id or current_user.id == 14:
 		form.title.data = post.title
 		form.author.data = post.author
@@ -289,7 +252,6 @@ def edit_post(id):
 @login_required
 def add_post():
 	form = PostForm()
-
 	if form.validate_on_submit():
 		poster = current_user.id
 		post = Posts(title=form.title.data, content=form.content.data, poster_id=poster, slug=form.slug.data)
@@ -300,18 +262,11 @@ def add_post():
 		db.session.add(post)
 		db.session.commit()
 		flash("Blog Post Submitted Successfully")
-
 	return render_template("add_post.html", form=form)
 
 @app.route('/')
 def index():
-
-	return render_template("index.html")
-
-@app.route('/user/<name>')
-
-def user(name):
-	return render_template("user.html", user_name=name)
+	return redirect(url_for('posts'))
 
 @app.errorhandler(404)
 def page_not_found(e):

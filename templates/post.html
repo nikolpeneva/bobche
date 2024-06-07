@@ -47,6 +47,8 @@
             {{ form.submit(class_="btn btn-primary") }}
         </div>
     </form>
+	{{ ckeditor.load() }}
+ 	{{ ckeditor.config(name='content') }}
 {% else %}
     <p>You must be logged in to comment. <a href="{{ url_for('login') }}">Login</a></p>
 {% endif %}
