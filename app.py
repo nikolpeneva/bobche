@@ -12,9 +12,7 @@ app = Flask(__name__)
 ckeditor = CKEditor(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
 app.config['SECRET_KEY'] = "samo levski"
-
 db = SQLAlchemy(app)
-migrate = Migrate(app, db)
 
 class Users(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
